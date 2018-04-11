@@ -6,7 +6,7 @@ import tensorflow.contrib.eager as tfe
 import numpy as np
 import time
 import scipy.io as sio
-
+from sklearn.linear_model import Ridge
 ##这里定义一些全局的变量
 L_max =100
 Tmax = 100
@@ -56,49 +56,52 @@ with tf.device("/gpu:0"):
     # 构建多层神经网络
     def mlp(step, x, y, E0,is_train = True):
         global W0,b0,W1
-        global W0_new,b0_new,find
+        global W0_new,b0_new,find,temp1_array,temp2_array,best_t
         find =0
 
         m = E0.shape[1] #在mnist的图像分类中应该是等于10的
-        flag =1
         for i_Lambdas in range(Lambdas_len):
 
             Lambda = Lambdas[i_Lambdas]
-            print(Lambda)
             W0_new = tf.constant(tf.random_uniform(shape=[1, Tmax], minval=-Lambda, maxval=Lambda)) #从-lambda到lambda随机产生T_max个w0
             b0_new = tf.constant(tf.random_uniform(shape=[Tmax], minval=-Lambda, maxval=Lambda))
+            temp1_array =[]
+            temp2_array = []
             HT = tf.matmul(x,W0_new) +b0_new
             HT = tf.sigmoid(HT)
+            for t in range(Tmax):  # 遍历随机产生的Tmax个变量
+                H_t = HT[:, t]
+                H_t = tf.reshape(H_t, (-1, 1))
+
+                for i_m in range(m):
+                    eq = E0[:, i_m]
+                    eq = tf.reshape(eq, (-1, 1))
+                    # print("H_t ={}".format(H_t.numpy())+"eq = {}".format(eq.numpy)+"r_L = {}".format(r_L))
+                    temp1 = tf.square(tf.matmul(tf.transpose(eq), H_t)) / tf.matmul(tf.transpose(H_t), H_t)
+                    temp2 = tf.matmul(tf.transpose(eq), eq)
+                    temp1_array.append(temp1)
+                    temp2_array.append(temp2)
+                    # print("temp = {}".format(temp.numpy())+"r_L = {}".format(r_L)+"temp1 = {}".format(temp1.numpy())+"temp2 = {}".format(temp2.numpy()))
+                # if mfind == 1:  # 说明temp的值都大于0
+                #     find = 1
+
+
             for i_r in range(r_len):
                 r_L = r[i_r]
-                for t in range(Tmax):#遍历随机产生的Tmax个变量
-                    H_t = HT[:,t]
-                    H_t = tf.reshape(H_t,(-1,1))
-                    global mfind
-                    mfind =1
-                    for i_m in range(m):
-                        eq = E0[:,i_m]
-                        eq = tf.reshape(eq,(-1,1))
-                        # print("H_t ={}".format(H_t.numpy())+"eq = {}".format(eq.numpy)+"r_L = {}".format(r_L))
-                        temp1 = tf.square(tf.matmul(tf.transpose(eq),H_t)) / tf.matmul(tf.transpose(H_t),H_t)
-                        temp2 = (tf.matmul(tf.transpose(eq),eq))
-                        temp=  temp1- (1-r_L)*temp2
-                        # print("temp = {}".format(temp.numpy())+"r_L = {}".format(r_L)+"temp1 = {}".format(temp1.numpy())+"temp2 = {}".format(temp2.numpy()))
-
-                        if temp.numpy() <0: #小于0说明这一组不符合要求
-                            mfind =0
-                            break
-
-                    if mfind == 1:#说明temp的值都大于0
+                max = - 1
+                for t in range(Tmax):
+                    temp = temp1_array[t] - (1 - r_L) * temp2_array[t]
+                    temp = temp.numpy()
+                    if temp >=0 and temp >max:
+                        max = temp
+                        best_t = t
                         find =1
-
-                        W0 = tf.concat([W0, tf.reshape(W0_new[:,t],(-1,1)) ], 1)
-                        temp = tf.constant(b0_new[t].numpy(),shape=(1))
-                        b0 = tf.concat([b0, temp], 0)
-                        break
                 if find:
                     break
             if find:
+                W0 = tf.concat([W0, tf.reshape(W0_new[:, best_t], (-1, 1))], 1)
+                temp = tf.constant(b0_new[best_t].numpy(), shape=(1))
+                b0 = tf.concat([b0, temp], 0)
                 break
         if find==0:
             print("End searching")
@@ -116,7 +119,8 @@ with tf.device("/gpu:0"):
     pltx = np.zeros(L_max)
     plty = np.zeros(L_max)
     E = train_label
-    while (step<=20 )and(loss >tol):
+    regr = Ridge(alpha=0.000001)
+    while (step<=100 )and(loss >tol):
         # 生成128个数据，batch_data是图像像素数据，batch_label是图像label信息
         #batch_data, batch_label = mnist.train.next_batch(128)
         # 梯度下降优化网络参数
@@ -126,18 +130,20 @@ with tf.device("/gpu:0"):
         hidden = tf.matmul(train_data, W0) + b0
         # print(E-train_label)
         hidden = tf.nn.sigmoid(hidden)
-        print(hidden)
+        # print(hidden)
         # 使用最小二乘的方法来对输出权重进行求解
 
         # W1 = tf.matmul(np.linalg.pinv(hidden), train_label)
         # if step == 11:
         #     sio.savemat('temp.mat',{'hidden':hidden,'train_label':train_label,'W1':W1})
-        temp1 = tf.ones((600,600))*2 + tf.matmul(hidden,tf.transpose(hidden))
-        temp2 = tf.matrix_inverse(temp1)
-        W1 = tf.matmul(tf.transpose(hidden),temp2)
-        W1 = tf.matmul(W1,train_label)
+        # temp1 = tf.ones((600,600))*5+ tf.matmul(hidden,tf.transpose(hidden))
+        # temp2 = tf.matrix_inverse(temp1)
+        # W1 = tf.matmul(tf.transpose(hidden),temp2)
+        # W1 = tf.matmul(W1,train_label)
 
-        logits = tf.matmul(hidden, W1)
+        regr.fit(hidden, train_label)
+
+        logits = regr.predict(hidden)
         loss = tf.sqrt(tf.reduce_mean(tf.square(logits - train_label)))#计算均方根
         E = logits - train_label
         temp = tf.equal(tf.argmax(logits, 1), tf.argmax(train_label, 1))
@@ -149,7 +155,7 @@ with tf.device("/gpu:0"):
 
     hidden = tf.matmul(test_data, W0) + b0
     hidden = tf.nn.sigmoid(hidden)
-    logits = tf.matmul(hidden, W1)
+    logits = regr.predict(hidden)
     loss = tf.sqrt(tf.reduce_mean(tf.square(logits - test_label)))  # 计算均方根
 
     temp = tf.equal(tf.argmax(logits, 1), tf.argmax(test_label, 1))
@@ -157,7 +163,7 @@ with tf.device("/gpu:0"):
 
 
     plt.figure(figsize=(8, 4))
-    plt.plot(pltx[0:20], plty[0:20], label="train_loss", color="red", linewidth=2)
+    plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
     plt.show()
     print("test loss = {}".format(loss.numpy()) + "  acc = {}".format(acc.numpy()))
     print("cost_time: %.6f" % (time.clock() - start))
