@@ -6,8 +6,11 @@ import tensorflow.contrib.eager as tfe
 import numpy as np
 import time
 import scipy.io as sio
+import os
 from sklearn.linear_model import Ridge
 ##这里定义一些全局的变量
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 L_max =100
 Tmax = 100
 Lambdas = [0.5, 1, 5, 10, 30, 50, 100, 150, 200, 250]
