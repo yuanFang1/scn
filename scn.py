@@ -74,11 +74,12 @@ train_target = train[1:, :]
 test_input = test[:-1, :]
 test_target = test[1:, :]
 
-train_data = tf.constant(train_input).gpu()
-train_label = tf.constant(train_target).gpu()
+gpu_index =1
+train_data = tf.constant(train_input).gpu(gpu_index)
+train_label = tf.constant(train_target).gpu(gpu_index)
 
-test_data = tf.constant(test_input).gpu()
-test_label = tf.constant(test_target).gpu()
+test_data = tf.constant(test_input).gpu(gpu_index)
+test_label = tf.constant(test_target).gpu(gpu_index)
 # load_data = sio.loadmat('Demo_Iris.mat')
 # load_data = sio.loadmat('Demo_Data.mat')
 # train_data = tf.cast(tf.contrib.eager.Variable(load_data['X']),tf.float32).gpu()
