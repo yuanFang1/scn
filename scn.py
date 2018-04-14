@@ -91,7 +91,7 @@ with tf.device("/gpu:0"):
                 max = - 1
                 for t in range(Tmax):
                     for i_m in range(m):
-                        index = t*m + i_m
+                        index = t*int(m) + i_m
                         temp = temp1_array[index] - (1 - r_L) * temp2_array[index]
                         temp = temp.numpy()
                         if temp >=0 and temp >max:
