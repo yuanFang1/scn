@@ -126,7 +126,7 @@ def plot_result(TS_values, Train_value, Pred_value, Loss_pred, Fig_name='Predict
     plt.figure(figsize=(35, 5))
     plt.title(
         'Predict future values for time sequences\n(Dashlines are predicted values)', fontsize=12)
-    plt.title('MSE of Prediction:' + str(Loss_pred), loc='right', fontsize=12)
+    plt.title('RMSE of Prediction:' + str(Loss_pred), loc='right', fontsize=12)
     plt.xlabel('x', fontsize=10)
     plt.ylabel('y', fontsize=10)
     plt.xticks(fontsize=10)

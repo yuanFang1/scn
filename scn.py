@@ -226,4 +226,6 @@ with tf.device("/gpu:1"):
 
     plt.figure(figsize=(8, 4))
     plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
-    plt.show()
+
+
+    plot_result(set_length,train_target,logits.numpy(),loss.numpy())
