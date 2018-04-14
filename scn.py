@@ -20,7 +20,7 @@ from _data_process import *
 plt.switch_backend('agg')
 ##这里定义一些全局的变量
 L_max =100
-Tmax = 50
+Tmax = 80
 Lambdas = [0.5, 1, 5, 10, 30, 50, 100, 150, 200, 250]
 Lambdas_len = np.size(Lambdas)
 r =  [ 0.9, 0.99, 0.999,0.9999, 0.99999, 0.999999]
