@@ -7,6 +7,7 @@ import numpy as np
 import time
 import scipy.io as sio
 from sklearn.linear_model import Ridge
+<<<<<<< HEAD
 from numpy import loadtxt, atleast_2d
 
 from pandas import DataFrame
@@ -16,6 +17,9 @@ from pandas import read_csv
 from pandas import datetime
 
 from _data_process import *
+=======
+plt.switch_backend('agg')
+>>>>>>> 64c6442becce61328d85424d816f4c9de3f61fd3
 ##这里定义一些全局的变量
 L_max =100
 Tmax = 20
