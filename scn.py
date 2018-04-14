@@ -104,7 +104,7 @@ def constant_variable_biases(shape,value,is_var=1):
         var = tf.constant(value=value,shape=shape)
     return var
 
-with tf.device("/gpu:0"):
+with tf.device("/gpu:1"):
     # 第一层网络的参数，输入为28*28=784维，隐藏层150维
     W0 = constant_variable_weight(shape=[1, 1],stddev=0.1,is_var=0)
     b0 = constant_variable_biases(shape=[1],value=0.1,is_var=0)
