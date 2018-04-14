@@ -137,7 +137,7 @@ def plot_result(TS_values, Train_value, Pred_value, Loss_pred, Fig_name='Predict
     plt.plot(test_scope, Pred_value, 'b-', label='prediction', linewidth=1)
 
     plt.legend(loc='upper right')
-    plt.savefig('./Result/' + Fig_name + '.png')
+    plt.savefig(Fig_name + '.png')
     plt.show()
 
 # time-transform
