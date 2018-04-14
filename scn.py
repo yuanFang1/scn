@@ -180,6 +180,7 @@ with tf.device("/gpu:1"):
     pltx = np.zeros(L_max)
     plty = np.zeros(L_max)
     E = train_label
+    print(tf.size(train_label))
     regr = Ridge(alpha=0.000001)
     while (step<=L_max )and(loss >tol):
         # 生成128个数据，batch_data是图像像素数据，batch_label是图像label信息
@@ -228,4 +229,4 @@ with tf.device("/gpu:1"):
     plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
 
 
-    plot_result(train,train_target,logits,loss.numpy())
+    plot_result(ts_values_array,train_target,logits,loss.numpy())
