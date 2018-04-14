@@ -7,6 +7,15 @@ import numpy as np
 import time
 import scipy.io as sio
 from sklearn.linear_model import Ridge
+from numpy import loadtxt, atleast_2d
+
+from pandas import DataFrame
+from pandas import Series
+from pandas import concat
+from pandas import read_csv
+from pandas import datetime
+
+from _data_process import *
 ##这里定义一些全局的变量
 L_max =100
 Tmax = 20
@@ -21,13 +30,60 @@ tfe.enable_eager_execution()
 # 使用TensorFlow自带的MNIST数据集，第一次会自动下载，会花费一定时间
 #mnist = input_data.read_data_sets("/data/mnist", one_hot=True)
 
-# load_data = sio.loadmat('Demo_Iris.mat')
-load_data = sio.loadmat('Demo_Data.mat')
-train_data = tf.cast(tf.contrib.eager.Variable(load_data['X']),tf.float32).gpu()
-train_label = tf.cast(tf.contrib.eager.Variable(load_data['T']),tf.float32).gpu()
 
-test_data = tf.cast(tf.contrib.eager.Variable(load_data['X2']),tf.float32).gpu()
-test_label = tf.cast(tf.contrib.eager.Variable(load_data['T2']),tf.float32).gpu()
+series = read_csv('chinese_oil_production.csv', header=0,
+                      parse_dates=[0], index_col=0, squeeze=True)
+
+# transfer the dataset to array
+raw_values = series.values
+ts_values_array = np.array(raw_values)
+set_length = len(ts_values_array)
+
+# transform data to be stationary
+dataset_difference = difference(raw_values, 1)
+
+# creat dataset train, test
+ts_look_back = 12
+using_difference = False
+Diff = ''
+if using_difference == True:
+    Diff = '_Diff'
+if using_difference == True:
+    # using dataset_diference for training
+    dataset = dataset_difference
+else:
+    # using dataset for training
+    dataset = ts_values_array
+
+# split into train and test sets
+train_size = int(len(dataset) * 0.8)
+print('train_size: %i' % train_size)
+
+datset = atleast_2d(dataset).T
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaler = scaler.fit(datset)
+dataset_scaled = scaler.fit_transform(datset)
+
+train, test = dataset_scaled[0:train_size, :], dataset_scaled[train_size:, :]
+# data shape should be (lens_ts, n_features)
+
+train_input = train[:-1, :]
+train_target = train[1:, :]
+test_input = test[:-1, :]
+test_target = test[1:, :]
+
+train_data = tf.constant(train_input).gpu()
+train_label = tf.constant(train_target).gpu()
+
+test_data = tf.constant(test_input).gpu()
+test_label = tf.constant(test_target).gpu()
+# load_data = sio.loadmat('Demo_Iris.mat')
+# load_data = sio.loadmat('Demo_Data.mat')
+# train_data = tf.cast(tf.contrib.eager.Variable(load_data['X']),tf.float32).gpu()
+# train_label = tf.cast(tf.contrib.eager.Variable(load_data['T']),tf.float32).gpu()
+#
+# test_data = tf.cast(tf.contrib.eager.Variable(load_data['X2']),tf.float32).gpu()
+# test_label = tf.cast(tf.contrib.eager.Variable(load_data['T2']),tf.float32).gpu()
 # 展示信息的间隔
 verbose_interval = 500
 
