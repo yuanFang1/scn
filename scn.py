@@ -228,4 +228,4 @@ with tf.device("/gpu:1"):
     plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
 
 
-    plot_result(set_length,train_target,logits,loss.numpy())
+    plot_result(train,train_target,logits,loss.numpy())
