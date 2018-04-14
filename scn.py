@@ -7,6 +7,7 @@ import numpy as np
 import time
 import scipy.io as sio
 from sklearn.linear_model import Ridge
+plt.switch_backend('agg')
 ##这里定义一些全局的变量
 L_max =100
 Tmax = 20
