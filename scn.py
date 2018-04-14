@@ -6,13 +6,10 @@ import tensorflow.contrib.eager as tfe
 import numpy as np
 import time
 import scipy.io as sio
-import os
 from sklearn.linear_model import Ridge
 ##这里定义一些全局的变量
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 L_max =100
-Tmax = 100
+Tmax = 20
 Lambdas = [0.5, 1, 5, 10, 30, 50, 100, 150, 200, 250]
 Lambdas_len = np.size(Lambdas)
 r =  [ 0.9, 0.99, 0.999,0.9999, 0.99999, 0.999999]
@@ -93,12 +90,14 @@ with tf.device("/gpu:0"):
                 r_L = r[i_r]
                 max = - 1
                 for t in range(Tmax):
-                    temp = temp1_array[t] - (1 - r_L) * temp2_array[t]
-                    temp = temp.numpy()
-                    if temp >=0 and temp >max:
-                        max = temp
-                        best_t = t
-                        find =1
+                    for i_m in range(m):
+                        index = t*m + i_m
+                        temp = temp1_array[index] - (1 - r_L) * temp2_array[index]
+                        temp = temp.numpy()
+                        if temp >=0 and temp >max:
+                            max = temp
+                            best_t = t
+                            find =1
                 if find:
                     break
             if find:
@@ -114,7 +113,7 @@ with tf.device("/gpu:0"):
         return 1
 
 
-    start = time.clock()
+    start = time.time()
     # 执行3000步
     step =1
     loss =10
@@ -163,10 +162,9 @@ with tf.device("/gpu:0"):
 
     temp = tf.equal(tf.argmax(logits, 1), tf.argmax(test_label, 1))
     acc = tf.reduce_mean(tf.cast(temp, tf.float32))
-
+    print("test loss = {}".format(loss.numpy()) + "  acc = {}".format(acc.numpy()))
+    print("cost_time: %.6f" % (time.time() - start))
 
     plt.figure(figsize=(8, 4))
     plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
     plt.show()
-    print("test loss = {}".format(loss.numpy()) + "  acc = {}".format(acc.numpy()))
-    print("cost_time: %.6f" % (time.clock() - start))
