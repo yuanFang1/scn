@@ -19,7 +19,7 @@ from _data_process import *
 
 plt.switch_backend('agg')
 ##这里定义一些全局的变量
-L_max =10
+L_max =100
 Tmax = 50
 Lambdas = [0.5, 1, 5, 10, 30, 50, 100, 150, 200, 250]
 Lambdas_len = np.size(Lambdas)
@@ -229,4 +229,4 @@ with tf.device("/gpu:1"):
     plt.plot(pltx[0:step-1], plty[0:step-1], label="train_loss", color="red", linewidth=2)
 
 
-    plot_result(ts_values_array,train_target,logits,loss.numpy())
+    plot_result(dataset_scaled,train_target,logits,loss.numpy())
