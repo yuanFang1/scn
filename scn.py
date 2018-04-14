@@ -181,7 +181,7 @@ with tf.device("/gpu:1"):
     plty = np.zeros(L_max)
     E = train_label
     regr = Ridge(alpha=0.000001)
-    while (step<=100 )and(loss >tol):
+    while (step<=L_max )and(loss >tol):
         # 生成128个数据，batch_data是图像像素数据，batch_label是图像label信息
         #batch_data, batch_label = mnist.train.next_batch(128)
         # 梯度下降优化网络参数
